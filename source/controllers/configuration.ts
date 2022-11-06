@@ -2,6 +2,7 @@
 import { Request, Response, NextFunction } from "express";
 import { NginxConfFile } from "nginx-conf";
 const filename = `${__dirname}/../files/readme.conf`;
+const { exec } = require("child_process");
 
 const getConfigurations = async (
   req: Request,
@@ -76,6 +77,19 @@ const addConfiguration = async (
     );
 
     conf.flush();
+    exec("systemctl restart nginx ", (error: { message: any; }, stdout: any, stderr: any) => {
+      if (error) {
+        console.log(`error: ${error.message}`);
+        return res.status(500).json({
+          message: "Internal Server Error!",
+        });
+      }
+      if (stderr) {
+        console.log(`stderr: ${stderr}`);
+        return;
+      }
+      console.log(`stdout: ${stdout}`);
+    });
     return res.status(200).json({
       message: {
         port,
